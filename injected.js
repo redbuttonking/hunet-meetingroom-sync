@@ -1,9 +1,10 @@
 // 다우오피스 페이지의 XHR/fetch를 가로채 회의실 예약 이벤트를 감지 (main world에서 실행)
 ;(function () {
+  console.log('[HUNET] injected.js 로드됨')
   const TARGET_HOST = 'hug.hunet.co.kr'
 
   function isReservationUrl(url) {
-    return typeof url === 'string' && url.includes(TARGET_HOST) && url.includes('/api/asset/')
+    return typeof url === 'string' && url.includes('/api/asset/')
   }
 
   // "2026-05-22T10:00:00.000+09:00" → "2026-05-22"
@@ -26,6 +27,11 @@
       // PUT  .../reserve/{id} → 예약 수정
       if ((method === 'POST' || method === 'PUT') && /\/reserve(\/\d+)?$/.test(url)) {
         const d = json.data
+        // 이용 목적이 면접인 경우만 동기화
+        const purpose = Array.isArray(d.properties)
+          ? (d.properties.find((p) => String(p.attributeId) === '10')?.content || '')
+          : ''
+        if (!purpose.includes('면접')) return null
         return {
           action: method === 'POST' ? 'create' : 'update',
           externalId: d.id,
@@ -52,7 +58,8 @@
   function dispatch(payload) {
     const items = Array.isArray(payload) ? payload : [payload]
     items.forEach((p) => {
-      window.postMessage({ source: 'HUNET_ROOM_SYNC', payload: p }, '*')
+      // 최상위 프레임으로 전달 (iframe context 무효화 문제 방지)
+      window.top.postMessage({ source: 'HUNET_ROOM_SYNC', payload: p }, '*')
     })
   }
 
@@ -63,14 +70,17 @@
   XMLHttpRequest.prototype.open = function (method, url, ...rest) {
     this._hunetMethod = (method || '').toUpperCase()
     this._hunetUrl = url || ''
+    console.log('[HUNET] XHR:', this._hunetMethod, this._hunetUrl)
     return origOpen.apply(this, [method, url, ...rest])
   }
 
   XMLHttpRequest.prototype.send = function (...args) {
     if (isReservationUrl(this._hunetUrl)) {
       this.addEventListener('load', function () {
+        console.log('[HUNET] 응답 수신:', this.status, this._hunetUrl)
         if (this.status !== 200) return
         const result = buildPayload(this._hunetMethod, this._hunetUrl, this.responseText)
+        console.log('[HUNET] 파싱 결과:', result)
         if (result) dispatch(result)
       })
     }

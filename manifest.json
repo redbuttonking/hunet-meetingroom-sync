@@ -11,14 +11,15 @@
   "content_scripts": [
     {
       "matches": ["*://hug.hunet.co.kr/*"],
+      "js": ["injected.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": ["*://hug.hunet.co.kr/*"],
       "js": ["content.js"],
       "run_at": "document_start"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["injected.js"],
-      "matches": ["*://hug.hunet.co.kr/*"]
     }
   ],
   "action": {
