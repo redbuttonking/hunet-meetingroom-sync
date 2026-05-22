@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "휴넷 회의실 동기화",
+  "version": "1.0.0",
+  "description": "다우오피스 회의실 예약을 면접 일정 시스템에 자동 동기화합니다.",
+  "permissions": ["storage"],
+  "host_permissions": ["*://hug.hunet.co.kr/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://hug.hunet.co.kr/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["injected.js"],
+      "matches": ["*://hug.hunet.co.kr/*"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "휴넷 회의실 동기화"
+  }
+}
