@@ -3,5 +3,8 @@
 window.addEventListener('message', (event) => {
   if (!event.data || event.data.source !== 'HUNET_ROOM_SYNC') return
 
-  chrome.runtime.sendMessage({ type: 'ROOM_RESERVATION_EVENT', data: event.data.payload })
+  // 확장 프로그램 재로드 후 페이지를 새로고침하지 않으면 runtime이 무효화됨 — 무시
+  try {
+    chrome.runtime.sendMessage({ type: 'ROOM_RESERVATION_EVENT', data: event.data.payload })
+  } catch (_) {}
 })
