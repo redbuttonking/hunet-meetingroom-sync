@@ -1,6 +1,5 @@
 // 다우오피스 페이지의 XHR/fetch를 가로채 회의실 예약 이벤트를 감지 (main world에서 실행)
 ;(function () {
-  console.log('[HUNET] injected.js 로드됨')
   const TARGET_HOST = 'hug.hunet.co.kr'
 
   function isReservationUrl(url) {
@@ -70,17 +69,14 @@
   XMLHttpRequest.prototype.open = function (method, url, ...rest) {
     this._hunetMethod = (method || '').toUpperCase()
     this._hunetUrl = url || ''
-    console.log('[HUNET] XHR:', this._hunetMethod, this._hunetUrl)
     return origOpen.apply(this, [method, url, ...rest])
   }
 
   XMLHttpRequest.prototype.send = function (...args) {
     if (isReservationUrl(this._hunetUrl)) {
       this.addEventListener('load', function () {
-        console.log('[HUNET] 응답 수신:', this.status, this._hunetUrl)
         if (this.status !== 200) return
         const result = buildPayload(this._hunetMethod, this._hunetUrl, this.responseText)
-        console.log('[HUNET] 파싱 결과:', result)
         if (result) dispatch(result)
       })
     }
