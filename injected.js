@@ -26,13 +26,9 @@
       // PUT  .../reserve/{id} → 예약 수정
       if ((method === 'POST' || method === 'PUT') && /\/reserve(\/\d+)?$/.test(url)) {
         const d = json.data
-        // 이용 목적이 면접인 경우만 동기화
-        console.log('[HUNET] properties:', JSON.stringify(d.properties))
         const purpose = Array.isArray(d.properties)
           ? (d.properties.find((p) => String(p.attributeId) === '10')?.content || '')
           : ''
-        console.log('[HUNET] purpose:', purpose)
-        if (!purpose.includes('면접')) return null
         return {
           action: method === 'POST' ? 'create' : 'update',
           externalId: d.id,
@@ -40,6 +36,7 @@
           date: parseDate(d.startTime),
           startTime: parseTime(d.startTime),
           endTime: parseTime(d.endTime),
+          purpose,
         }
       }
 
